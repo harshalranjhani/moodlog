@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Image, View, Animated, Easing, Dimensions } from 'react-native';
 import { Card, Button, useTheme, Text } from 'react-native-paper';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -9,19 +9,79 @@ import { ThemedView } from '@/components/ThemedView';
 
 const { width, height } = Dimensions.get('window');
 
-const moods = [
-  { title: 'Current Mood', subtitle: 'Feeling Happy', icon: 'happy-outline', description: 'You have been feeling happy lately. Keep up the positive vibes!' },
-  { title: 'Current Mood', subtitle: 'Feeling Sad', icon: 'sad-outline', description: 'You have been feeling sad lately. It’s okay to have bad days.' },
-  { title: 'Current Mood', subtitle: 'Feeling Excited', icon: 'rocket-outline', description: 'You are excited about something. Enjoy the moment!' },
-  { title: 'Current Mood', subtitle: 'Feeling Angry', icon: 'alert-outline', description: 'You have been feeling angry. Try to find a way to cool down.' },
-  { title: 'Current Mood', subtitle: 'Feeling Anxious', icon: 'warning-outline', description: 'You have been feeling anxious. Take deep breaths and try to relax.' },
-  { title: 'Current Mood', subtitle: 'Feeling Calm', icon: 'leaf-outline', description: 'You are feeling calm. Keep maintaining your peace.' },
-];
+import { AppState } from 'react-native';
+
 
 const TrackScreen: React.FC = () => {
   const { colors } = useTheme();
-  const [currentMood, setCurrentMood] = useState(moods[0]);
+  const [currentMood, setCurrentMood] = useState({
+    icon: "happy-outline",
+    mood: "Happy",
+    "subtitle": "Always keep a smile on your face!",
+  });
   const animatedValue = new Animated.Value(0);
+  const ws = useRef<WebSocket | null>(null);
+  const appState = useRef(AppState.currentState);
+
+  const connectWebSocket = () => {
+    ws.current = new WebSocket('wss://moodlog-backend.onrender.com');
+  
+    ws.current.onopen = () => {
+      console.log('WebSocket connected');
+    };
+  
+    ws.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data) {
+        setCurrentMood({mood: data.mood, icon: data.icon, subtitle: data.subtitle});
+        startAnimation();
+      }
+    };
+  
+    ws.current.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+  
+    ws.current.onclose = () => {
+      console.log('WebSocket disconnected');
+    };
+  };
+
+  useEffect(() => {
+    connectWebSocket();
+  
+    return () => {
+      if (ws.current) {
+        ws.current.close();
+      }
+    };
+  }, []);
+  
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        console.log('App has come to the foreground!');
+        connectWebSocket();
+      } else if (
+        appState.current === 'active' &&
+        nextAppState.match(/inactive|background/)
+      ) {
+        console.log('App has gone to the background!');
+        if (ws.current) {
+          ws.current.close();
+        }
+      }
+  
+      appState.current = nextAppState;
+    });
+  
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   const startAnimation = () => {
     Animated.loop(
@@ -40,12 +100,6 @@ const TrackScreen: React.FC = () => {
         }),
       ])
     ).start();
-  };
-
-  const fetchRandomMood = () => {
-    const randomMood = moods[Math.floor(Math.random() * moods.length)];
-    setCurrentMood(randomMood);
-    startAnimation();
   };
 
   const animatedStyle = {
@@ -75,15 +129,14 @@ const TrackScreen: React.FC = () => {
         <Card style={[styles.card, { backgroundColor: colors.surface }]}>
           <Card.Content style={styles.cardContent}>
             <Animated.View style={[animatedStyle]}>
-              <Ionicons name={currentMood.icon as any} size={80} color={colors.primary} />
+              <Ionicons name={currentMood?.icon as any} size={80} color={colors.primary} />
             </Animated.View>
-            <Text style={styles.cardTitle}>{currentMood.title}</Text>
-            <Text style={styles.cardSubtitle}>{currentMood.subtitle}</Text>
-            <Text style={styles.cardText}>{currentMood.description}</Text>
+            <Text style={styles.cardTitle}>{currentMood?.mood}</Text>
+            <Text style={styles.cardText}>{currentMood?.subtitle}</Text>
           </Card.Content>
         </Card>
         <View style={styles.buttonContainer}>
-          <Button mode="contained" onPress={fetchRandomMood} style={styles.button}>
+          <Button mode="contained" style={styles.button}>
             View AI Powered Analytics
           </Button>
         </View>
