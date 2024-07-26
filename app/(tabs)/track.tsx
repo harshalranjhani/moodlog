@@ -27,8 +27,8 @@ const TrackScreen: React.FC = () => {
     icon: "happy-outline",
     mood: "Happy",
     subtitle: "Always keep a smile on your face!",
-    temperature: "27°C",
-    humidity: "40%"
+    temperature: "27",
+    humidity: "40"
   });
   const dispatch = useDispatch();
   const animatedValue = new Animated.Value(0);
@@ -172,11 +172,11 @@ const TrackScreen: React.FC = () => {
           <View style={styles.infoContainer}>
             <View style={styles.infoItem}>
               <Text style={styles.infoLabel}>Temperature:</Text>
-              <Text style={styles.infoValue}>{currentMood?.temperature}</Text>
+              <Text style={styles.infoValue}>{currentMood?.temperature}°C</Text>
             </View>
             <View style={styles.infoItem}>
               <Text style={styles.infoLabel}>Humidity:</Text>
-              <Text style={styles.infoValue}>{currentMood?.humidity}</Text>
+              <Text style={styles.infoValue}>{currentMood?.humidity}%</Text>
             </View>
           </View>
         </View>
