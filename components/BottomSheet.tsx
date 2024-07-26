@@ -11,20 +11,22 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useTheme } from "react-native-paper";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import SlidingUpPanel from "rn-sliding-up-panel";
+import Markdown from "react-native-markdown-display";
+import { setSuggestion } from "@/utils/mood-slice";
 
 const { height } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#121212",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: "transparent",
   },
   buttonContainer: {
     marginTop: 20,
+  },
+  mdContent: {
+    color: "white"
   },
   button: {
     backgroundColor: "#6200ee",
@@ -76,20 +78,18 @@ interface BottomSheetProps {
   };
 }
 
-const dummyData = Array.from({ length: 10 }).map((_, i) => ({
-  id: i.toString(),
-  text: `Item ${i + 1}`,
-}));
-
 const BottomSheet = ({ draggableRange }: BottomSheetProps) => {
   const _draggedValue = useRef(new Animated.Value(0)).current;
   const _panelRef = useRef<SlidingUpPanel | null>(null);
   const { colors } = useTheme();
-  const [suggestion, setSuggestion] = useState("" as string);
-  const [loading, setLoading] = useState(true);
+  const [localSuggestion, setLocalSuggestion] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
   const mood = useSelector((state: any) => state.mood.mood);
+  const suggestion = useSelector((state: any) => state.mood.suggestion);
+  const dispatch = useDispatch();
 
   const fetchSuggestions = async (mood: string) => {
+    setLoading(true);
     try {
       console.log("fetching suggestions");
       const response = await axios.post(
@@ -101,8 +101,9 @@ const BottomSheet = ({ draggableRange }: BottomSheetProps) => {
           },
         }
       );
-      console.log(response.data);
-      setSuggestion(response.data.suggestions);
+      const suggestionText = response?.data?.suggestionResponse?.suggestionText || "";
+      setLocalSuggestion(suggestionText);
+      dispatch(setSuggestion(suggestionText));
       setLoading(false);
     } catch (error) {
       console.error("Error fetching suggestions", error);
@@ -112,7 +113,7 @@ const BottomSheet = ({ draggableRange }: BottomSheetProps) => {
 
   useEffect(() => {
     fetchSuggestions(mood.mood + mood.subtitle);
-  }, []);
+  }, [mood]);
 
   const { top, bottom } = draggableRange;
 
@@ -146,10 +147,53 @@ const BottomSheet = ({ draggableRange }: BottomSheetProps) => {
     }
   }, []);
 
+  // Animation for the button text color
+  const colorAnimation = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(colorAnimation, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: false,
+        }),
+        Animated.timing(colorAnimation, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: false,
+        }),
+      ])
+    ).start();
+  }, [colorAnimation]);
+
+  const buttonTextColor = colorAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["#FFF", "#FF69B4"], // White to HotPink color transition
+  });
+
+  const headerColorAnimation = _draggedValue.interpolate({
+    inputRange: [bottom, top],
+    outputRange: ["#FFF", "#FF69B4"], // White to HotPink color transition
+  });
+
+  const headerFontSize = _draggedValue.interpolate({
+    inputRange: [bottom, top],
+    outputRange: [24, 32], // Increase font size
+    extrapolate: "clamp",
+  });
+
+  const headerStyle = {
+    color: headerColorAnimation,
+    fontSize: headerFontSize,
+  };
+
   return (
-    <View>
+    <View style={styles.container}>
       <TouchableOpacity style={styles.button} onPress={handleSlideUp}>
-        <Text style={styles.buttonText}>View AI powered analytics</Text>
+        <Animated.Text style={[styles.buttonText, { color: buttonTextColor }]}>
+          View AI powered suggestions
+        </Animated.Text>
       </TouchableOpacity>
       <SlidingUpPanel
         ref={_panelRef}
@@ -162,29 +206,23 @@ const BottomSheet = ({ draggableRange }: BottomSheetProps) => {
         friction={1}
         onBottomReached={() => {
           if (_panelRef.current) {
-            _panelRef.current.hide(); // Reset the panel to initial state to ensure it shows up on next click
+            _panelRef.current.hide();
           }
         }}
       >
         <View style={styles.panel}>
           <View style={styles.panelHeader}>
-            <Animated.View
-              style={{
-                transform: [
-                  { translateY: textTranslateY },
-                  { translateX: textTranslateX },
-                  { scale: textScale },
-                ],
-              }}
-            >
-              <Text style={styles.textHeader}>AI Powered Analytics</Text>
-            </Animated.View>
+            <Animated.Text style={[styles.textHeader, headerStyle]}>
+              AI Powered Analytics
+            </Animated.Text>
           </View>
           <ScrollView contentContainerStyle={styles.content}>
             {loading ? (
               <ActivityIndicator size="large" color="#6200ee" />
             ) : (
-              <Text style={{ color: "white" }}>{suggestion}</Text>
+              <Markdown style={{ body: { color: "white" } }}>
+                {suggestion || "No suggestions available."}
+              </Markdown>
             )}
           </ScrollView>
         </View>

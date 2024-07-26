@@ -8,13 +8,17 @@ export const moodSlice = createSlice({
       mood: "Happy",
       subtitle: "Always keep a smile on your face!",
     },
+    suggestion: "",
   },
   reducers: {
     setMood(state, action) {
-      state.mood = action.payload.mood;
+      state.mood = action.payload;
+    },
+    setSuggestion(state, action) {
+      state.suggestion = action.payload;
     },
   },
 });
 
-export const { setMood } = moodSlice.actions;
+export const { setMood, setSuggestion } = moodSlice.actions;
 export default moodSlice.reducer;
