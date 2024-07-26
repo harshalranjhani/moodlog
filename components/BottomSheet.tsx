@@ -91,7 +91,7 @@ const BottomSheet = ({ draggableRange }: BottomSheetProps) => {
   const fetchSuggestions = async (mood: string) => {
     setLoading(true);
     try {
-      console.log("fetching suggestions");
+      console.log("fetching suggestions for ", mood);
       const response = await axios.post(
         "https://moodlog-backend.onrender.com/data/suggestions",
         { mood },
@@ -112,7 +112,8 @@ const BottomSheet = ({ draggableRange }: BottomSheetProps) => {
   };
 
   useEffect(() => {
-    fetchSuggestions(mood.mood + mood.subtitle);
+    console.log(mood)
+    fetchSuggestions(mood.mood.mood +" " + mood.mood.subtitle);
   }, [mood]);
 
   const { top, bottom } = draggableRange;

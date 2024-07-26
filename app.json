@@ -40,6 +40,12 @@
         "projectId": "73334abe-cfec-4e02-a93f-3195a08411f3"
       }
     },
-    "owner": "harshalranjhani"
+    "owner": "harshalranjhani",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/73334abe-cfec-4e02-a93f-3195a08411f3"
+    }
   }
 }
