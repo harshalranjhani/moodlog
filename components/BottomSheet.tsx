@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   mdContent: {
-    color: "white"
+    color: "white",
   },
   button: {
     backgroundColor: "#6200ee",
@@ -44,6 +44,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#1e1e1e",
     position: "relative",
+    height: "100%",
   },
   panelHeader: {
     height: 100,
@@ -58,6 +59,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 24,
+    flex: 1,
   },
   itemContainer: {
     backgroundColor: "#2e2e2e",
@@ -101,7 +103,8 @@ const BottomSheet = ({ draggableRange }: BottomSheetProps) => {
           },
         }
       );
-      const suggestionText = response?.data?.suggestionResponse?.suggestionText || "";
+      const suggestionText =
+        response?.data?.suggestionResponse?.suggestionText || "";
       setLocalSuggestion(suggestionText);
       dispatch(setSuggestion(suggestionText));
       setLoading(false);
@@ -113,7 +116,7 @@ const BottomSheet = ({ draggableRange }: BottomSheetProps) => {
 
   useEffect(() => {
     console.log(mood)
-    fetchSuggestions(mood.mood.mood +" " + mood.mood.subtitle);
+    fetchSuggestions(mood?.mood?.mood || mood?.mood + " " + mood?.mood?.subtitle || mood?.subtitle);
   }, [mood]);
 
   const { top, bottom } = draggableRange;
@@ -180,7 +183,7 @@ const BottomSheet = ({ draggableRange }: BottomSheetProps) => {
 
   const headerFontSize = _draggedValue.interpolate({
     inputRange: [bottom, top],
-    outputRange: [24, 32], // Increase font size
+    outputRange: [20, 28], // Increase font size
     extrapolate: "clamp",
   });
 
@@ -203,7 +206,7 @@ const BottomSheet = ({ draggableRange }: BottomSheetProps) => {
         snappingPoints={[top * 0.9]}
         showBackdrop={true}
         backdropOpacity={0.3}
-        height={height * 0.9}
+        height={height}
         friction={1}
         onBottomReached={() => {
           if (_panelRef.current) {
@@ -214,16 +217,22 @@ const BottomSheet = ({ draggableRange }: BottomSheetProps) => {
         <View style={styles.panel}>
           <View style={styles.panelHeader}>
             <Animated.Text style={[styles.textHeader, headerStyle]}>
-              AI Powered Analytics
+              AI Powered Suggestions
             </Animated.Text>
           </View>
-          <ScrollView contentContainerStyle={styles.content}>
+          <ScrollView
+            contentContainerStyle={styles.content}
+            pointerEvents="box-none"
+            nestedScrollEnabled={true}
+          >
             {loading ? (
               <ActivityIndicator size="large" color="#6200ee" />
             ) : (
-              <Markdown style={{ body: { color: "white" } }}>
-                {suggestion || "No suggestions available."}
-              </Markdown>
+              <>
+                <Markdown style={{ body: { color: "white" } }}>
+                  {suggestion || "No suggestions available."}
+                </Markdown>
+              </>
             )}
           </ScrollView>
         </View>
@@ -232,4 +241,8 @@ const BottomSheet = ({ draggableRange }: BottomSheetProps) => {
   );
 };
 
-export default BottomSheet;
+const App = () => {
+  return <BottomSheet draggableRange={{ top: height * 0.9, bottom: 0 }} />;
+};
+
+export default App;

@@ -7,19 +7,19 @@ import {
   Easing,
   Dimensions,
 } from "react-native";
-import { Card, Button, useTheme, Text } from "react-native-paper";
+import { Card, useTheme, Text } from "react-native-paper";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 import { AppState } from "react-native";
 import BottomSheet from "@/components/BottomSheet";
 import { useDispatch } from "react-redux";
-import moodSlice, { setMood } from "@/utils/mood-slice";
+import { setMood } from "@/utils/mood-slice";
 
 const TrackScreen: React.FC = () => {
   const { colors } = useTheme();
@@ -27,6 +27,8 @@ const TrackScreen: React.FC = () => {
     icon: "happy-outline",
     mood: "Happy",
     subtitle: "Always keep a smile on your face!",
+    temperature: "27°C",
+    humidity: "40%"
   });
   const dispatch = useDispatch();
   const animatedValue = new Animated.Value(0);
@@ -42,11 +44,14 @@ const TrackScreen: React.FC = () => {
 
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
+      console.log(data)
       if (data) {
         setCurrentMood({
           mood: data.mood,
           icon: data.icon,
           subtitle: data.subtitle,
+          temperature: data.temperature,
+          humidity: data.humidity,
         });
         dispatch(
           setMood({
@@ -164,9 +169,19 @@ const TrackScreen: React.FC = () => {
               <Text style={styles.cardText}>{currentMood?.subtitle}</Text>
             </Card.Content>
           </Card>
+          <View style={styles.infoContainer}>
+            <View style={styles.infoItem}>
+              <Text style={styles.infoLabel}>Temperature:</Text>
+              <Text style={styles.infoValue}>{currentMood?.temperature}</Text>
+            </View>
+            <View style={styles.infoItem}>
+              <Text style={styles.infoLabel}>Humidity:</Text>
+              <Text style={styles.infoValue}>{currentMood?.humidity}</Text>
+            </View>
+          </View>
         </View>
       </ParallaxScrollView>
-      <BottomSheet draggableRange={{ top: height * 0.9, bottom: 0 }} />
+      <BottomSheet />
     </>
   );
 };
@@ -210,14 +225,21 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingHorizontal: 16,
   },
-  buttonContainer: {
-    alignItems: "center",
-    justifyContent: "center",
+  infoContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: 16,
   },
-  button: {
-    borderRadius: 25,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+  infoItem: {
+    alignItems: "center",
+  },
+  infoLabel: {
+    fontSize: 16,
+    color: "gray",
+  },
+  infoValue: {
+    fontSize: 20,
+    fontWeight: "bold",
   },
 });
 
