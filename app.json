@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "moodlog",
-    "slug": "moodlog",
+    "name": "moodLog",
+    "slug": "moodLog",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
