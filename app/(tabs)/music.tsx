@@ -1,6 +1,6 @@
 import { setMusicRecs } from '@/utils/music-slice';
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Linking } from 'react-native';
 import { Avatar, Card, useTheme } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +19,7 @@ interface Track {
   name: string;
   artists: Artist[];
   album: Album;
+  external_urls: {spotify : string}; 
 }
 
 const Music: React.FC = () => {
@@ -59,15 +60,17 @@ const Music: React.FC = () => {
   };
 
   const renderMusicCard = ({ item }: { item: Track }) => (
-    <Card style={styles.card}>
-      <View style={styles.cardContent}>
-        <Avatar.Image size={50} source={{ uri: item.album.images[0].url }} />
-        <View style={styles.textContainer}>
-          <ThemedText style={styles.songName}>{item.name}</ThemedText>
-          <ThemedText style={styles.artistName}>{item.artists.map(artist => artist.name).join(', ')}</ThemedText>
+    <TouchableOpacity onPress={() => Linking.openURL(item.external_urls.spotify)}>
+      <Card style={styles.card}>
+        <View style={styles.cardContent}>
+          <Avatar.Image size={50} source={{ uri: item.album.images[0].url }} />
+          <View style={styles.textContainer}>
+            <ThemedText style={styles.songName}>{item.name}</ThemedText>
+            <ThemedText style={styles.artistName}>{item.artists.map(artist => artist.name).join(', ')}</ThemedText>
+          </View>
         </View>
-      </View>
-    </Card>
+      </Card>
+    </TouchableOpacity>
   );
 
   if (loading) {
