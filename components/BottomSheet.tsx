@@ -116,7 +116,7 @@ const BottomSheet = ({ draggableRange }: BottomSheetProps) => {
 
   useEffect(() => {
     console.log(mood)
-    fetchSuggestions(mood?.mood?.mood || mood?.mood + " " + mood?.mood?.subtitle || mood?.subtitle);
+    fetchSuggestions(mood?.mood + " " + mood?.subtitle);
   }, [mood]);
 
   const { top, bottom } = draggableRange;
