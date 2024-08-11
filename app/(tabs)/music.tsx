@@ -1,8 +1,10 @@
 import { setMusicRecs } from '@/utils/music-slice';
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
-import { Avatar, Card } from 'react-native-paper';
+import { Avatar, Card, useTheme } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ThemedText } from '@/components/ThemedText';
 
 interface Artist {
   name: string;
@@ -25,6 +27,7 @@ const Music: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const mood = useSelector((state: any) => state.mood.mood);
   const dispatch = useDispatch();
+  const theme = useTheme();
 
   useEffect(() => {
     fetchMusicData();
@@ -47,7 +50,6 @@ const Music: React.FC = () => {
       }
 
       dispatch(setMusicRecs({ musicData: data.recs.tracks }));
-      console.log("Music data", musicData)
       setLoading(false);
     } catch (err) {
       console.log(err);
@@ -57,14 +59,12 @@ const Music: React.FC = () => {
   };
 
   const renderMusicCard = ({ item }: { item: Track }) => (
-    // Log item to inspect structure
-    console.log('Track item:', item),
     <Card style={styles.card}>
       <View style={styles.cardContent}>
         <Avatar.Image size={50} source={{ uri: item.album.images[0].url }} />
         <View style={styles.textContainer}>
-          <Text style={styles.songName}>{item.name}</Text>
-          <Text style={styles.artistName}>{item.artists.map(artist => artist.name).join(', ')}</Text>
+          <ThemedText style={styles.songName}>{item.name}</ThemedText>
+          <ThemedText style={styles.artistName}>{item.artists.map(artist => artist.name).join(', ')}</ThemedText>
         </View>
       </View>
     </Card>
@@ -73,7 +73,7 @@ const Music: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -81,32 +81,41 @@ const Music: React.FC = () => {
   if (error) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{error}</Text>
+        <ThemedText style={[styles.errorText, { color: theme.colors.error }]}>{error}</ThemedText>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Music Recommendations</Text>
-      <FlatList
-        data={musicData}
-        renderItem={renderMusicCard}
-        keyExtractor={(item) => item.id}
-      />
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <ThemedText style={styles.title}>Music Recommendations</ThemedText>
+        <FlatList
+          data={musicData}
+          renderItem={renderMusicCard}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+        />
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    paddingBottom: -100,
+  },
   container: {
     flex: 1,
     padding: 16,
+    paddingBottom: -10,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 16,
+    textAlign: 'center',
   },
   card: {
     marginBottom: 16,
@@ -126,7 +135,6 @@ const styles = StyleSheet.create({
   },
   artistName: {
     fontSize: 14,
-    color: 'gray',
   },
   loadingContainer: {
     flex: 1,
@@ -139,7 +147,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorText: {
-    color: 'red',
     fontSize: 18,
   },
 });
