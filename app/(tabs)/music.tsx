@@ -1,10 +1,11 @@
-import { setMusicRecs } from '@/utils/music-slice';
 import React, { useState, useEffect } from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Linking } from 'react-native';
 import { Avatar, Card, useTheme } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
+import * as Haptics from 'expo-haptics';
+import { setMusicRecs } from '@/utils/music-slice';
 
 interface Artist {
   name: string;
@@ -60,7 +61,15 @@ const Music: React.FC = () => {
   };
 
   const renderMusicCard = ({ item }: { item: Track }) => (
-    <TouchableOpacity onPress={() => Linking.openURL(item.external_urls.spotify)}>
+    <TouchableOpacity
+      onPress={() => {
+        Linking.openURL(item.external_urls.spotify);
+        Haptics.selectionAsync();
+      }}
+      onLongPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      }}
+    >
       <Card style={styles.card}>
         <View style={styles.cardContent}>
           <Avatar.Image size={50} source={{ uri: item.album.images[0].url }} />

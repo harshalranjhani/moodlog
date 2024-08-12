@@ -1,10 +1,10 @@
-import { Tabs } from 'expo-router';
 import React from 'react';
+import { Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -14,7 +14,8 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
@@ -33,12 +34,12 @@ export default function TabLayout() {
           ),
         }}
       />
-    <Tabs.Screen
+      <Tabs.Screen
         name="music"
         options={{
           title: 'Music',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "musical-notes" : "musical-notes-outline"} color={color} size={30} />
+            <Ionicons name={focused ? 'musical-notes' : 'musical-notes-outline'} color={color} size={30} />
           ),
         }}
       />
