@@ -39,17 +39,18 @@ const Music: React.FC = () => {
     try {
       const response = await fetch('https://moodlog-backend.onrender.com/data/recs', {
         method: "POST",
-        body: JSON.stringify({ mood: mood.mood, subtitle: mood.subtitle }),
+        body: JSON.stringify({ mood: mood.mood || mood.mood.mood, subtitle: mood.subtitle || mood.mood.subtitle }),
         headers: {
           "Content-Type": "application/json",
         },
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(`HTTP status ${response.status}`);
+        throw new Error(`HTTP status ${response.status}.`);
       }
+
+      const data = await response.json();
+      console.log(data);
 
       dispatch(setMusicRecs({ musicData: data.recs.tracks }));
       setLoading(false);
